@@ -5,6 +5,7 @@ import { Navbar } from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useState, useEffect } from "react";
 import { Carousel } from "@/components/ui/carousel";
+import ChatComponent from "@/components/ChatComponent";
 
 export default function AboutUs() {
   const [isInView, setIsInView] = useState(false);
@@ -160,6 +161,7 @@ export default function AboutUs() {
           </div>
         </div>
       </section>
+      <ChatComponent />
       <Footer />
     </main>
   );
