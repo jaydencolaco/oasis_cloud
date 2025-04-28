@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Poppins, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Head from "next/head";
+import ChatComponent from "@/components/ChatComponent";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -58,7 +59,10 @@ export default function RootLayout({
       </Head>
 
       <body className={poppins.className}>
-        <div className="min-h-screen bg-[#fcfcfc]">{children}</div>
+        <div className="min-h-screen bg-[#fcfcfc]">
+          {children}
+          <ChatComponent />
+        </div>
       </body>
     </html>
   );
