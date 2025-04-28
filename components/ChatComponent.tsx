@@ -15,6 +15,7 @@ export default function ChatComponent() {
   const [openChat, setOpenChat] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(false);
+  const [language, setLanguage] = useState<"english" | "hindi">("english");
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -25,7 +26,7 @@ export default function ChatComponent() {
     const userMessage: Message = {
       id: crypto.randomUUID(),
       sender: "user",
-      content: input,
+      content: input.trim(),
     };
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
@@ -36,7 +37,7 @@ export default function ChatComponent() {
       const res = await fetch("/api/lex", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: userMessage.content }),
+        body: JSON.stringify({ text: userMessage.content, language }), // ✅ Now sending language also
       });
 
       const data = await res.json();
@@ -44,11 +45,13 @@ export default function ChatComponent() {
       const botMessage: Message = {
         id: crypto.randomUUID(),
         sender: "bot",
-        content: data.reply || "No response",
+        content:
+          data.reply ||
+          (language === "hindi" ? "कोई उत्तर नहीं मिला" : "No response"),
       };
       setMessages((prev) => [...prev, botMessage]);
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Error sending message:", error);
       setError(true);
     } finally {
       setIsLoading(false);
@@ -97,17 +100,28 @@ export default function ChatComponent() {
 
       {openChat && (
         <div className="fixed md:bottom-20 bottom-28 z-40 right-4 w-[400px] max-w-[90%] bg-white shadow-2xl rounded-2xl dark:bg-gray-900 flex flex-col">
-          <header className="flex items-center px-4 py-3 bg-white dark:border-b border-gray-500 shadow rounded-t-2xl dark:bg-gray-900">
+          <header className="flex items-center justify-between px-4 py-3 bg-white dark:border-b border-gray-500 shadow rounded-t-2xl dark:bg-gray-900">
             <div className="flex items-center gap-2">
               <Bot className="w-9 h-9 p-1.5 dark:text-white text-black" />
               <div className="text-md dark:text-white text-black font-medium">
                 Oasis Bot
               </div>
             </div>
+
+            <select
+              value={language}
+              onChange={(e) =>
+                setLanguage(e.target.value as "english" | "hindi")
+              }
+              className="text-sm p-1 rounded dark:bg-gray-800 dark:text-white"
+            >
+              <option value="english">English</option>
+              <option value="hindi">हिंदी</option>
+            </select>
           </header>
 
           <div
-            className="flex-1 h-[400px] overflow-y-auto p-4 space-y-4"
+            className="flex-1 max-h-[400px] overflow-y-auto p-4 space-y-4"
             ref={scrollRef}
           >
             {messages.map((message) => (
@@ -125,26 +139,31 @@ export default function ChatComponent() {
 
             {isLoading && lastMessageIsUser && (
               <div className="p-2 rounded-lg bg-gray-200 text-left mr-auto max-w-[80%]">
-                Thinking...
+                {language === "hindi" ? "सोच रहे हैं..." : "Thinking..."}
               </div>
             )}
 
             {error && (
               <div className="p-2 rounded-lg bg-red-200 text-left mr-auto max-w-[80%]">
-                An error occurred. Please try again.
+                {language === "hindi"
+                  ? "त्रुटि हुई। कृपया पुनः प्रयास करें।"
+                  : "An error occurred. Please try again."}
               </div>
             )}
 
             {!error && messages.length === 0 && (
               <div className="dark:text-white text-black mx-8 flex h-full flex-col items-center justify-center gap-3 text-center">
                 <Bot size={28} />
-                <p>Hi I&apos;m your Oasis Bot</p>
+                <p>Hi, I&apos;m your Oasis Bot</p>
                 <p>
-                  Ask me any question related to oasis and I will try to help
-                  you out!
+                  {language === "hindi"
+                    ? "मुझसे Oasis से जुड़े किसी भी सवाल के बारे में पूछें!"
+                    : "Ask me any question related to Oasis and I'll try to help!"}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Type your message below!
+                  {language === "hindi"
+                    ? "अपना संदेश नीचे लिखें!"
+                    : "Type your message below!"}
                 </p>
               </div>
             )}
@@ -167,7 +186,11 @@ export default function ChatComponent() {
               value={input}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
-              placeholder="Type your message..."
+              placeholder={
+                language === "hindi"
+                  ? "अपना संदेश लिखें..."
+                  : "Type your message..."
+              }
               ref={inputRef}
               className="flex-1 border rounded-lg p-2 dark:bg-gray-800 dark:text-white"
             />
